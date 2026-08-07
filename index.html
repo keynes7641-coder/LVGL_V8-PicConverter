@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LVGL V8 圖片轉換程式 | LVGL Image Converter</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-icon">LV</div>
+      <div class="brand-title">LVGL V8 圖片轉換程式</div>
+      <span class="brand-badge">v8.x Compatible</span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- LEFT PANEL: Settings & File Inputs -->
+    <section class="glass-panel">
+      <div class="panel-header">
+        <span class="panel-header-icon">⚙️</span>
+        <h2>轉換參數與檔案設定</h2>
+      </div>
+
+      <!-- File Upload Card (4. 讀入檔案按鈕) -->
+      <div class="file-upload-card">
+        <span class="file-icon">📁</span>
+        <div class="file-card-title">選擇圖片檔案</div>
+        <div class="file-card-hint">支援 PNG, JPG, WEBP, BMP, GIF</div>
+        
+        <button class="btn-file-select" id="btnSelectFile" type="button">
+          📂 讀入檔案
+        </button>
+        <input type="file" id="fileInput" class="hidden-file-input" accept="image/*">
+      </div>
+
+      <!-- Resolution Selection (1. 解析度設定) -->
+      <div class="control-group">
+        <label class="control-label" for="resolutionSelect">
+          <span>1. 解析度設定</span>
+          <span class="label-tag" id="currentResDisplay">240 x 240</span>
+        </label>
+        <select id="resolutionSelect" class="select-input">
+          <option value="240x240" selected>240 x 240 (方形屏幕)</option>
+          <option value="240x320">240 x 320 (直向屏幕)</option>
+          <option value="320x240">320 x 240 (橫向屏幕)</option>
+          <option value="320x480">320 x 480 (HVGA屏幕)</option>
+          <option value="128x128">128 x 128 (OLED屏幕)</option>
+          <option value="custom">自訂解析度...</option>
+        </select>
+
+        <div class="custom-res-box" id="customResBox" style="display: none;">
+          <input type="number" id="customWidth" class="text-input" placeholder="寬度 (Width)" value="240" min="1" max="2048">
+          <input type="number" id="customHeight" class="text-input" placeholder="高度 (Height)" value="240" min="1" max="2048">
+        </div>
+      </div>
+
+      <!-- Aspect Ratio Setting (2. 圖片比例設定) -->
+      <div class="control-group">
+        <label class="control-label" for="aspectModeSelect">
+          <span>2. 圖片比例設定</span>
+        </label>
+        <select id="aspectModeSelect" class="select-input">
+          <option value="keep" selected>維持長寬比例 (Fit Ratio)</option>
+          <option value="fill">填滿畫面 (Fill / Stretch)</option>
+        </select>
+      </div>
+
+      <!-- LVGL V8 Options (3. Color Format & Swap & Dither) -->
+      <div class="control-group">
+        <label class="control-label">
+          <span>3. LVGL 格式與顏色選項</span>
+        </label>
+        
+        <div class="checkbox-option">
+          <span>Color Format: <strong style="color:var(--accent-cyan);">CF_TRUE_COLOR</strong></span>
+          <span class="label-tag">RGB565</span>
+        </div>
+
+        <div class="checkbox-option">
+          <span>Output Format: <strong style="color:var(--accent-cyan);">Binary RGB565 Swap</strong></span>
+          <span class="label-tag">Big-Endian</span>
+        </div>
+
+        <!-- Dither Checkbox -->
+        <label class="checkbox-option">
+          <span>Dither images (改善漸層品質)</span>
+          <input type="checkbox" id="ditherCheckbox" class="custom-checkbox" checked>
+        </label>
+
+        <!-- LVGL Header Checkbox -->
+        <label class="checkbox-option">
+          <span>包含 LVGL v8 Header (4-Bytes)</span>
+          <input type="checkbox" id="headerCheckbox" class="custom-checkbox" checked>
+        </label>
+      </div>
+
+      <!-- Export Buttons (9. 輸出按鈕) -->
+      <div class="export-section">
+        <button id="btnExportBin" class="btn-export-primary" type="button">
+          🚀 輸出 Binary 檔案 (.bin)
+        </button>
+        <button id="btnExportC" class="btn-export-secondary" type="button">
+          📜 輸出 C 程式碼 (.c)
+        </button>
+        <button id="btnExportPng" class="btn-export-secondary" type="button">
+          🖼️ 下載 PNG 預覽圖
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Preview Screen & Action Controls -->
+    <section class="glass-panel" style="align-items: center;">
+      <div class="panel-header" style="width: 100%;">
+        <span class="panel-header-icon">🖥️</span>
+        <h2>右側預覽畫面 (LVGL Target Screen Preview)</h2>
+      </div>
+
+      <div class="preview-container">
+        <!-- Frame mimicking hardware display -->
+        <div class="screen-frame" id="screenFrame">
+          <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="previewCanvas" width="240" height="240"></canvas>
+          </div>
+        </div>
+
+        <!-- Toolbar Buttons underneath Preview (5, 6, 7) -->
+        <div class="preview-toolbar">
+          <button id="btnRotate" class="action-btn" type="button">
+            🔄 旋轉90度 (<span id="rotateDegreeDisplay">0°</span>)
+          </button>
+
+          <button id="btnAlign" class="action-btn" type="button">
+            🎯 圖片位置: <span id="alignModeDisplay">置中</span>
+          </button>
+        </div>
+
+        <!-- Image Info Bar -->
+        <div class="info-bar">
+          <div class="info-item">
+            <span class="info-title">原始解析度</span>
+            <span class="info-value" id="infoOriginalRes">未讀入檔案</span>
+          </div>
+          <div class="info-item">
+            <span class="info-title">目標畫面</span>
+            <span class="info-value" id="infoTargetRes">240 x 240</span>
+          </div>
+          <div class="info-item">
+            <span class="info-title">預計輸出大小</span>
+            <span class="info-value" id="infoOutputSize">115.2 KB</span>
+          </div>
+          <div class="info-item">
+            <span class="info-title">目前旋轉/位置</span>
+            <span class="info-value" id="infoTransform">0° / 居中</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    LVGL V8 PicConverter — Designed for LVGL v8 Display Graphics Conversion
+  </footer>
+
+  <!-- Standard non-module scripts for local file:/// compatibility -->
+  <script src="converter.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+"converter.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
