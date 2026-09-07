@@ -14,6 +14,7 @@
   --accent-violet: #e100ff;
   --accent-green: #00e676;
   --accent-amber: #ffab00;
+  --accent-red: #ff5252;
   
   --text-main: #f0f4f8;
   --text-muted: #8a99ad;
@@ -243,11 +244,6 @@ body {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
-}
-
-/* Visually hidden file input (display: none for clean JS click) */
-.hidden-file-input {
-  display: none !important;
 }
 
 .btn-file-select {
@@ -481,53 +477,275 @@ canvas#previewCanvas {
   color: var(--accent-cyan);
 }
 
-/* Empty State placeholder overlay */
-.empty-state {
+/* ==========================================================================
+   ESP32 Web Serial Direct Upload Card (Bottom Right Section)
+   ========================================================================== */
+
+.esp32-upload-card {
+  width: 100%;
+  background: rgba(15, 22, 35, 0.8);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.esp32-upload-card:hover {
+  border-color: rgba(0, 242, 254, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 242, 254, 0.1);
+}
+
+.esp32-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.esp32-title-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.esp32-icon {
+  font-size: 1.3rem;
+}
+
+.esp32-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.port-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  transition: all 0.3s ease;
+}
+
+.port-status-badge.status-disconnected {
+  background: rgba(255, 82, 82, 0.15);
+  color: var(--accent-red);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+}
+
+.port-status-badge.status-connected {
+  background: rgba(0, 230, 118, 0.15);
+  color: var(--accent-green);
+  border: 1px solid rgba(0, 230, 118, 0.3);
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+}
+
+.esp32-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.port-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .port-input-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-serial-connect {
+  padding: 0.75rem 1.1rem;
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.2));
+  border: 1px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-serial-connect:hover {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #000;
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-serial-disconnect {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 82, 82, 0.15);
+  border: 1px solid rgba(255, 82, 82, 0.35);
+  border-radius: var(--radius-sm);
+  color: var(--accent-red);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-serial-disconnect:hover {
+  background: rgba(255, 82, 82, 0.3);
+  border-color: var(--accent-red);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Upload Progress Bar Box */
+.progress-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(10, 13, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+  border-radius: 4px;
+  transition: width 0.2s ease, background-color 0.3s ease;
+}
+
+.progress-label {
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+/* One-Click Convert & Upload Buttons Grid */
+.oneclick-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.btn-oneclick-upload {
+  padding: 0.85rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  color: var(--text-dim);
-  padding: 3rem 1rem;
+  gap: 6px;
+  border: none;
+  text-align: center;
 }
 
-.empty-state-icon {
-  font-size: 3rem;
-  opacity: 0.5;
+.btn-oneclick-upload.bin {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+}
+
+.btn-oneclick-upload.bin:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-oneclick-upload.code {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: #000;
+  box-shadow: 0 4px 15px rgba(247, 151, 30, 0.3);
+}
+
+.btn-oneclick-upload.code:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 210, 0, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Local File Upload & Cancel Buttons Grid */
+.upload-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.btn-upload-action {
+  padding: 0.9rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  text-align: center;
+}
+
+.btn-upload-action.primary {
+  background: linear-gradient(135deg, var(--accent-green), #00b0ff);
+  color: #000;
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+}
+
+.btn-upload-action.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 230, 118, 0.5);
+  filter: brightness(1.1);
+}
+
+/* Cancel Upload Button */
+.btn-upload-action.cancel {
+  background: rgba(255, 82, 82, 0.12);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+  color: var(--accent-red);
+}
+
+.btn-upload-action.cancel:hover:not(:disabled) {
+  background: rgba(255, 82, 82, 0.25);
+  border-color: var(--accent-red);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4);
+}
+
+.btn-upload-action:disabled, .btn-oneclick-upload:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.8);
 }
 
 /* Footer */
 footer {
-  text-align: center;
-  padding: 1.5rem;
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-.82rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-er;
-  gap: 12px;
-  color: var(--text-dim);
-  padding: 3rem 1rem;
-}
-
-.empty-state-icon {
-  font-size: 3rem;
-  opacity: 0.5;
-}
-
-/* Footer */
-footer {
-  text-align: center;
-  padding: 1.5rem;
-  color: var(--text-dim);
-  font-size: 0.82rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-ter {
   text-align: center;
   padding: 1.5rem;
   color: var(--text-dim);

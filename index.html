@@ -36,10 +36,11 @@
         <div class="file-card-title">選擇圖片檔案</div>
         <div class="file-card-hint">支援 PNG, JPG, WEBP, BMP, GIF</div>
         
-        <button class="btn-file-select" id="btnSelectFile" type="button">
+        <!-- Native HTML5 Label Button for 100% Fail-Proof File Explorer Opening -->
+        <label class="btn-file-select" for="fileInput" id="btnSelectFile" style="cursor: pointer;">
           📂 讀入檔案
-        </button>
-        <input type="file" id="fileInput" class="hidden-file-input" accept="image/*">
+        </label>
+        <input type="file" id="fileInput" style="display: none !important;" accept="image/*" onchange="handleFileSelect(event)">
       </div>
 
       <!-- Resolution Selection (1. 解析度設定) -->
@@ -117,11 +118,11 @@
       </div>
     </section>
 
-    <!-- RIGHT PANEL: Preview Screen & Action Controls -->
+    <!-- RIGHT PANEL: Preview Screen & Action Controls & ESP32 Web Serial Panel -->
     <section class="glass-panel" style="align-items: center;">
       <div class="panel-header" style="width: 100%;">
         <span class="panel-header-icon">🖥️</span>
-        <h2>右側預覽畫面 (LVGL Target Screen Preview)</h2>
+        <h2>右側預覽畫面與 ESP32 直連</h2>
       </div>
 
       <div class="preview-container">
@@ -132,7 +133,7 @@
           </div>
         </div>
 
-        <!-- Toolbar Buttons underneath Preview (5, 6, 7) -->
+        <!-- Toolbar Buttons underneath Preview -->
         <div class="preview-toolbar">
           <button id="btnRotate" class="action-btn" type="button">
             🔄 旋轉90度 (<span id="rotateDegreeDisplay">0°</span>)
@@ -162,6 +163,78 @@
             <span class="info-value" id="infoTransform">0° / 居中</span>
           </div>
         </div>
+
+        <!-- ESP32 Hardware Web Serial Upload Card -->
+        <div class="esp32-upload-card" id="esp32UploadCard">
+          <div class="esp32-card-header">
+            <div class="esp32-title-box">
+              <span class="esp32-icon">📡</span>
+              <span class="esp32-title">ESP32 開發板直連上傳 (Web Serial Upload)</span>
+            </div>
+            <span class="port-status-badge status-disconnected" id="portStatusBadge">🔌 未連接</span>
+          </div>
+
+          <div class="esp32-form">
+            <!-- 1. 選擇連接埠 (Select Serial Port & Connect / Disconnect Buttons) -->
+            <div class="control-group">
+              <label class="control-label" for="serialPortSelect">
+                <span>1. 選擇連接埠 (Select Serial Port)</span>
+              </label>
+              <div class="port-input-row">
+                <select id="serialPortSelect" class="select-input">
+                  <option value="" selected>-- 請點擊右側按鈕搜尋 / 連接 Port --</option>
+                </select>
+                <button id="btnConnectSerial" class="btn-serial-connect" type="button">
+                  🔌 搜尋 / 連接 Port
+                </button>
+                <button id="btnDisconnectSerial" class="btn-serial-disconnect" type="button">
+                  ❌ 中斷連接埠
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. 上傳檔案至... (Destination Path) -->
+            <div class="control-group">
+              <label class="control-label" for="uploadPathInput">
+                <span>2. 上傳檔案至... (Destination Path)</span>
+                <span class="label-tag">預設: / 根目錄</span>
+              </label>
+              <input type="text" id="uploadPathInput" class="text-input" value="/" placeholder="預設 / 根目錄 或 例如: /sdcard/images/">
+            </div>
+
+            <!-- Real-time Progress Bar -->
+            <div class="progress-box" id="uploadProgressBox" style="display: none;">
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="uploadProgressBar" style="width: 0%;"></div>
+              </div>
+              <span class="progress-label" id="uploadProgressText">準備上傳 0%</span>
+            </div>
+
+            <!-- Hidden input for ESP32 file selection -->
+            <input type="file" id="serialFileInput" style="display: none !important;" accept=".bin,.c,.png,image/png,text/x-csrc,text/plain,application/octet-stream" onchange="handleSerialFileSelect(event)">
+
+            <!-- 3.1 一鍵轉檔直傳按鈕區 (Convert & Upload in 1-Click) -->
+            <div class="oneclick-upload-grid">
+              <button id="btnConvertAndUploadBin" class="btn-oneclick-upload bin" type="button">
+                ⚡ 轉成 .bin 並上傳
+              </button>
+              <button id="btnConvertAndUploadC" class="btn-oneclick-upload code" type="button">
+                ⚡ 轉成 .c 並上傳
+              </button>
+            </div>
+
+            <!-- 3.2 選擇本地檔案上傳與取消按鈕區 -->
+            <div class="upload-buttons-grid">
+              <button id="btnUploadSelectedFile" class="btn-upload-action primary" type="button">
+                📤 上傳本地檔案 (.bin / .c / .png)
+              </button>
+              <button id="btnCancelUpload" class="btn-upload-action cancel" type="button" disabled>
+                🚫 取消上傳
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -173,10 +246,6 @@
 
   <!-- Standard non-module scripts for local file:/// compatibility -->
   <script src="converter.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
-"converter.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
